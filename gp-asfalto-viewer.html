@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>GP Asfalto — Planejamento</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { background: #040d1a; color: #e2e8f0; font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+  
+  /* HEADER */
+  .header { background: linear-gradient(135deg, #071428, #0a1f40); padding: 16px; border-bottom: 1px solid rgba(34,197,94,0.2); position: sticky; top: 0; z-index: 100; }
+  .header-inner { display: flex; align-items: center; gap: 12px; max-width: 600px; margin: 0 auto; }
+  .logo { width: 44px; height: 44px; border-radius: 8px; border: 2px solid rgba(34,197,94,0.4); object-fit: cover; flex-shrink: 0; background: #0f1f35; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #22C55E; font-size: 14px; }
+  .header-title { flex: 1; }
+  .header-title h1 { font-size: 22px; font-weight: 900; letter-spacing: 2px; line-height: 1; }
+  .header-title h1 span { color: #22C55E; }
+  .header-title p { font-size: 9px; color: #4ADE80; letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+
+  /* OBRA SELECTOR */
+  .obra-bar { max-width: 600px; margin: 0 auto; padding: 12px 16px; }
+  .obra-btn { width: 100%; padding: 14px 18px; border-radius: 12px; border: 2px solid #22C55E; background: rgba(34,197,94,0.1); color: #22C55E; font-size: 16px; font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+  .obra-btn .label { font-size: 9px; color: #4ADE80; letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 2px; }
+  .obra-btn .arrow { font-size: 18px; }
+
+  /* TABS */
+  .tabs { max-width: 600px; margin: 0 auto; padding: 0 16px 12px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; border: none; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+  .tab.active { background: #16A34A; color: white; }
+  .tab.inactive { background: rgba(255,255,255,0.05); color: #86EFAC; }
+
+  /* CONTENT */
+  .content { max-width: 600px; margin: 0 auto; padding: 0 16px 32px; }
+
+  /* CARDS */
+  .card { background: rgba(15,31,53,0.8); border: 1px solid rgba(34,197,94,0.15); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  .card-title { font-size: 20px; font-weight: 900; letter-spacing: 2px; color: #fff; margin-bottom: 12px; text-transform: uppercase; }
+  .label-sm { font-size: 9px; color: #4ADE80; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 3px; }
+  .value-lg { font-size: 22px; font-weight: 900; color: #22C55E; letter-spacing: 1px; }
+  .value-md { font-size: 16px; font-weight: 700; color: #e2e8f0; }
+  .value-blue { color: #60A5FA; }
+  
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .mini-card { background: rgba(34,197,94,0.06); border: 1px solid rgba(34,197,94,0.15); border-radius: 10px; padding: 10px 14px; }
+  .mini-card-blue { background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.15); border-radius: 10px; padding: 10px 14px; }
+
+  /* FATORES TABLE */
+  .fator-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .fator-row:last-child { border-bottom: none; }
+  .fator-nome { font-size: 13px; font-weight: 700; color: #86EFAC; font-family: monospace; }
+  .fator-nome.base { color: #22C55E; }
+  .fator-horas { font-size: 16px; font-weight: 900; color: #60A5FA; font-family: monospace; }
+  .fator-horas.base { color: #22C55E; }
+
+  /* BADGES */
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; font-family: monospace; }
+  .badge-green { background: rgba(34,197,94,0.1); color: #86EFAC; border: 1px solid rgba(34,197,94,0.2); }
+  .badge-yellow { background: rgba(250,204,21,0.1); color: #FDE68A; border: 1px solid rgba(250,204,21,0.2); }
+  .badge-viagens { color: #86EFAC; font-family: monospace; font-size: 11px; margin-top: 4px; }
+
+  /* TOTAL CARD */
+  .total-card { background: linear-gradient(135deg, rgba(34,197,94,0.12), rgba(34,197,94,0.06)); border: 1px solid rgba(34,197,94,0.35); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  .total-title { font-size: 10px; color: #4ADE80; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; font-family: monospace; }
+  .total-value { font-size: 36px; font-weight: 900; color: #22C55E; letter-spacing: 2px; }
+  .total-breakdown { margin-top: 12px; border-top: 1px solid rgba(34,197,94,0.15); padding-top: 10px; }
+  .breakdown-row { display: flex; justify-content: space-between; padding: 4px 0; font-family: monospace; font-size: 12px; }
+
+  /* DIÁRIO */
+  .diario-card { background: rgba(15,31,53,0.6); border: 1px solid rgba(34,197,94,0.15); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+  .diario-data { font-size: 20px; font-weight: 900; color: #22C55E; letter-spacing: 2px; }
+  .diario-servico { font-size: 13px; color: #86EFAC; font-family: monospace; margin: 4px 0 10px; }
+  .equip-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: rgba(34,197,94,0.04); border-radius: 8px; margin-bottom: 4px; }
+  .equip-nome { font-size: 13px; font-family: monospace; color: #e2e8f0; }
+  .equip-stats { display: flex; gap: 12px; }
+  .equip-h { font-size: 13px; font-family: monospace; color: #60A5FA; }
+  .equip-d { font-size: 13px; font-family: monospace; color: #FDE68A; }
+
+  /* ACUMULADO */
+  .acum-card { background: rgba(34,197,94,0.06); border: 1px solid rgba(34,197,94,0.2); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+  .acum-title { font-size: 13px; font-weight: 700; color: #86EFAC; font-family: monospace; margin-bottom: 10px; }
+  .progress-bar { height: 8px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; margin: 8px 0 4px; }
+  .progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #16A34A, #4ADE80); }
+  .progress-pct { font-size: 11px; color: #4ADE80; font-family: monospace; text-align: right; }
+
+  /* COMPARATIVO */
+  .comp-header { display: grid; grid-template-columns: 1fr 60px 60px 60px 54px; gap: 4px; padding: 4px 0; }
+  .comp-row { display: grid; grid-template-columns: 1fr 60px 60px 60px 54px; gap: 4px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.04); align-items: center; }
+  .comp-label { font-size: 8px; color: #4ADE80; font-family: monospace; letter-spacing: 1px; }
+  .comp-val { font-size: 12px; font-family: monospace; text-align: right; }
+  .ganho { color: #22C55E; }
+  .perda { color: #f87171; }
+  .neutro { color: #e2e8f0; }
+  .cinza { color: #4a5568; }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 999; display: flex; flex-direction: column; justify-content: flex-end; }
+  .modal-sheet { background: #071428; border-radius: 20px 20px 0 0; padding: 20px 20px 40px; border: 2px solid rgba(34,197,94,0.4); max-height: 85vh; overflow-y: auto; }
+  .modal-handle { width: 40px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 99px; margin: 0 auto 20px; }
+  .modal-title { font-size: 11px; color: #4ADE80; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; font-family: monospace; }
+  .modal-obra-btn { width: 100%; padding: 16px 18px; border-radius: 12px; border: 1px solid rgba(34,197,94,0.2); background: rgba(15,31,53,0.8); color: #86EFAC; font-size: 16px; font-weight: 400; cursor: pointer; text-align: left; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .modal-obra-btn.ativa { border: 2px solid #22C55E; background: rgba(34,197,94,0.15); color: #22C55E; font-weight: 700; }
+  .modal-close { width: 100%; padding: 14px; border-radius: 10px; border: 2px solid rgba(34,197,94,0.3); background: transparent; color: #86EFAC; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+
+  /* EMPTY */
+  .empty { text-align: center; padding: 60px 20px; color: #4ADE80; font-family: monospace; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="logo">GP</div>
+    <div class="header-title">
+      <h1><span>GP</span> ASFALTO</h1>
+      <p>Planejamento de Obras</p>
+    </div>
+  </div>
+</div>
+
+<div class="obra-bar">
+  <button class="obra-btn" onclick="abrirModalObras()">
+    <div>
+      <span class="label">Obra Atual</span>
+      <span id="obra-nome-atual">Carregando...</span>
+    </div>
+    <span class="arrow">▼</span>
+  </button>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab active" onclick="setAba('servicos', this)">📋 Serviços</button>
+  <button class="tab inactive" onclick="setAba('diario', this)">📅 Diário</button>
+</div>
+
+<div class="content" id="content"></div>
+
+<!-- Modal obras -->
+<div class="modal-overlay" id="modal-obras" style="display:none" onclick="fecharModalObras()">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Selecionar Obra</div>
+    <div id="modal-obras-lista"></div>
+    <button class="modal-close" onclick="fecharModalObras()">Fechar</button>
+  </div>
+</div>
+
+<script>
+// ===================== DADOS =====================
+// Cole aqui os dados exportados do app principal
+// ou edite diretamente
+const OBRAS_KEY = "obras-lista-gp-v5";
+
+const defaultObras = [
+  {
+    id: 1,
+    nome: "Obra Iguaçu",
+    servicos: [
+      {
+        id: 1,
+        nome: "Subleito",
+        quantidade: "11400",
+        prodDiaria: "3800",
+        unidade: "m²",
+        fatores: [{ nome: "RC", horas: "1,00", unidades: 1 }, { nome: "MN", horas: "0,69", unidades: 1 }, { nome: "CP", horas: "0,59", unidades: 1 }, { nome: "TP", horas: "0,50", unidades: 1 }],
+        equipamentos: [{ nome: "Equipamento 1", litros: "17" }, { nome: "Equipamento 2", litros: "15" }, { nome: "Equipamento 3", litros: "14" }, { nome: "Equipamento 4", litros: "7" }],
+      },
+      {
+        id: 2,
+        nome: "Escavação Carga e Transporte de Terra",
+        quantidade: "2140",
+        prodDiaria: "2140",
+        unidade: "m³",
+        fatores: [{ nome: "PC", horas: "1,00", unidades: 1 }, { nome: "CB", horas: "0,77", unidades: 4 }, { nome: "MN", horas: "0,05", unidades: 1 }],
+        equipamentos: [{ nome: "Escavadeira", litros: "15" }, { nome: "Caminhão 1", litros: "17" }, { nome: "Caminhão 2", litros: "17" }, { nome: "Caminhão 3", litros: "17" }, { nome: "Caminhão 4", litros: "17" }, { nome: "Motoniveladora", litros: "1" }],
+        consumoExtra: { litrosPorViagem: 4.68, capacidadeCaminhao: 12 },
+      },
+      {
+        id: 3,
+        nome: "Aterro 100% PN",
+        quantidade: "1800",
+        prodDiaria: "1800",
+        unidade: "m³",
+        fatores: [{ nome: "RC", horas: "1,00", unidades: 1 }, { nome: "CP", horas: "0,57", unidades: 1 }, { nome: "TP", horas: "0,53", unidades: 1 }, { nome: "MN", horas: "0,31", unidades: 1 }],
+        equipamentos: [{ nome: "Equipamento 1", litros: "17" }, { nome: "Equipamento 2", litros: "14" }, { nome: "Equipamento 3", litros: "8" }, { nome: "Equipamento 4", litros: "7" }],
+        consumoExtra: { litrosPorViagem: 3.00, capacidadeCaminhao: 12 },
+      },
+      {
+        id: 4,
+        nome: "Base",
+        quantidade: "11400",
+        prodDiaria: "5000",
+        unidade: "m²",
+        fatores: [{ nome: "RC", horas: "1,00", unidades: 1 }, { nome: "MN", horas: "0,69", unidades: 1 }, { nome: "CP", horas: "0,54", unidades: 1 }, { nome: "TP", horas: "0,37", unidades: 1 }],
+        equipamentos: [{ nome: "Equipamento 1", litros: "17" }, { nome: "Equipamento 2", litros: "15" }, { nome: "Equipamento 3", litros: "13" }, { nome: "Equipamento 4", litros: "5" }],
+      },
+    ],
+    diario: [],
+  },
+  {
+    id: 3,
+    nome: "Comigo Acreúna",
+    servicos: [
+      { id: 101, nome: "Subleito", quantidade: "", prodDiaria: "", unidade: "m²", fatores: [{ nome: "RC", horas: "1,00", unidades: 1 }], equipamentos: [] }
+    ],
+    diario: [
+      {
+        id: 1001,
+        data: "2026-02-19",
+        servicoId: "101",
+        quantidade: "1500",
+        obs: "Homogeneização e compactação de subleito",
+        equipamentos: [
+          { nome: "MN-05", horaIni: "11327.6", horaFim: "11333.1", diesel: "" },
+          { nome: "PC-05", horaIni: "10743.4", horaFim: "10746.3", diesel: "" },
+          { nome: "RC-02", horaIni: "4177.2",  horaFim: "4182.4",  diesel: "" },
+          { nome: "RC-06", horaIni: "5996.8",  horaFim: "5999.0",  diesel: "" },
+        ]
+      }
+    ],
+  }
+];
+
+// ===================== STATE =====================
+let obras = [];
+let obraAtualId = 1;
+let abaAtual = 'servicos';
+
+function loadData() {
+  try {
+    const keys = [OBRAS_KEY, "obras-lista-gp-v4", "obras-lista-gp-v3", "obras-lista-gp-v2"];
+    for (const k of keys) {
+      const s = localStorage.getItem(k);
+      if (s) { const p = JSON.parse(s); if (p && p.length) { obras = p; return; } }
+    }
+  } catch(e) {}
+  obras = defaultObras;
+}
+
+function getObra() { return obras.find(o => o.id === obraAtualId) || obras[0]; }
+
+// ===================== CALC =====================
+function getRcProd(s) { return (parseFloat(s.prodDiaria) / 10) || 380; }
+
+function calcTotalL(s) {
+  if (s.consumoExtra) {
+    const q = parseFloat(s.quantidade);
+    const cap = parseFloat(s.consumoExtra.capacidadeCaminhao) || 12;
+    const lv = parseFloat(s.consumoExtra.litrosPorViagem);
+    if (q && lv) return (q / cap) * lv;
+    return null;
+  }
+  const rcProd = getRcProd(s);
+  const total = s.equipamentos.reduce((sum, e) => {
+    const l = parseFloat(e.litros) || 0;
+    return sum + (rcProd ? l / rcProd : 0);
+  }, 0);
+  const q = parseFloat(s.quantidade);
+  return (total && q) ? q * total : null;
+}
+
+function calcHorasPorFator(s) {
+  const q = parseFloat(s.quantidade);
+  const rcProd = getRcProd(s);
+  if (!q || !rcProd) return [];
+  const horasBase = q / rcProd;
+  return (s.fatores || []).filter(ft => ft.nome && ft.horas).map(ft => {
+    const f = parseFloat(String(ft.horas).replace(",", "."));
+    const u = parseInt(ft.unidades) || 1;
+    const h = f ? horasBase * f * u : null;
+    return { nome: ft.nome, fator: f, unidades: u, horasTotal: h };
+  });
+}
+
+function fmt(n, dec=0) { return n.toLocaleString("pt-BR", { minimumFractionDigits: dec, maximumFractionDigits: dec }); }
+function fmtData(d) {
+  const dt = new Date(d + "T12:00:00");
+  return dt.toLocaleDateString("pt-BR", { day:"2-digit", month:"2-digit", year:"numeric" });
+}
+
+// ===================== RENDER =====================
+function render() {
+  const obra = getObra();
+  document.getElementById("obra-nome-atual").textContent = obra?.nome || "—";
+  if (abaAtual === 'servicos') renderServicos(obra);
+  else renderDiario(obra);
+}
+
+function renderServicos(obra) {
+  const servicos = obra?.servicos || [];
+  let html = "";
+
+  if (!servicos.length) {
+    html = '<div class="empty">📋<br>Nenhum serviço cadastrado.</div>';
+    document.getElementById("content").innerHTML = html;
+    return;
+  }
+
+  // Total diesel
+  const totalL = servicos.reduce((sum, s) => sum + (calcTotalL(s) || 0), 0);
+
+  servicos.forEach(s => {
+    const q = parseFloat(s.quantidade) || 0;
+    const unid = s.unidade || "m²";
+    const totalSrv = calcTotalL(s);
+    const fatores = calcHorasPorFator(s);
+
+    // Viagens
+    let viagensHtml = "";
+    if (s.consumoExtra && q) {
+      const cap = parseFloat(s.consumoExtra.capacidadeCaminhao) || 12;
+      const nVg = Math.ceil(q / cap);
+      const prodH = parseFloat(s.prodDiaria) / 10;
+      const vgH = prodH && cap ? Math.round(prodH / cap) : null;
+      viagensHtml = `<div class="badge-viagens">${fmt(nVg)} viagens · ${vgH || "—"} vg/h</div>`;
+    }
+
+    // Fatores
+    let fatoresHtml = "";
+    if (fatores.length) {
+      fatoresHtml = `<div style="margin-top:12px;border-top:1px solid rgba(34,197,94,0.1);padding-top:10px;">
+        <div class="label-sm" style="margin-bottom:8px;">⏱ Horas por equipamento</div>`;
+      fatores.forEach(f => {
+        const isBase = f.fator === 1;
+        fatoresHtml += `<div class="fator-row">
+          <span class="fator-nome ${isBase ? 'base' : ''}">${f.nome}${f.unidades > 1 ? ' ×'+f.unidades : ''} ${isBase ? '★' : '('+String(f.fator).replace('.',',')+')' }</span>
+          <span class="fator-horas ${isBase ? 'base' : ''}">${f.horasTotal ? fmt(f.horasTotal, 1)+'h' : '—'}</span>
+        </div>`;
+      });
+      fatoresHtml += `</div>`;
+    }
+
+    // Diesel breakdown
+    let dieselHtml = "";
+    if (totalSrv) {
+      dieselHtml = `<div class="mini-card" style="margin-top:10px;">
+        <div class="label-sm">⛽ Diesel total</div>
+        <div class="value-lg">${fmt(totalSrv, 0)} L</div>
+        ${s.consumoExtra ? `<div style="font-size:11px;color:#86EFAC;font-family:monospace;margin-top:2px;">${fmt(q)} ÷ ${s.consumoExtra.capacidadeCaminhao} × ${s.consumoExtra.litrosPorViagem.toFixed(2).replace('.',',')} L</div>` : ''}
+      </div>`;
+    }
+
+    html += `<div class="card">
+      <div class="card-title">${s.nome}</div>
+      <div class="mini-card" style="margin-bottom:10px;">
+        <div class="label-sm">Quantidade da obra</div>
+        <div class="value-lg">${q ? fmt(q) : '—'} ${unid}</div>
+        ${viagensHtml}
+      </div>
+      <div class="grid2">
+        <div class="mini-card">
+          <div class="label-sm">Produtividade diária</div>
+          <div class="value-md">${fmt(parseFloat(s.prodDiaria)||0)} ${unid}/dia</div>
+        </div>
+        <div class="mini-card-blue">
+          <div class="label-sm" style="color:#93C5FD">Prod. horária</div>
+          <div class="value-md value-blue">${fmt((parseFloat(s.prodDiaria)||0)/10, 0)} ${unid}/h</div>
+        </div>
+      </div>
+      ${dieselHtml}
+      ${fatoresHtml}
+    </div>`;
+  });
+
+  // Total card
+  if (totalL > 0) {
+    let breakdown = "";
+    servicos.forEach(s => {
+      const t = calcTotalL(s);
+      if (t) breakdown += `<div class="breakdown-row"><span style="color:#86EFAC">${s.nome.length > 24 ? s.nome.slice(0,24)+'…' : s.nome}</span><span style="color:#4ADE80;font-weight:700">${fmt(t,0)} L</span></div>`;
+    });
+    html += `<div class="total-card">
+      <div class="total-title">⛽ Total geral de diesel — ${obra.nome}</div>
+      <div class="total-value">${fmt(totalL, 0)} L</div>
+      ${breakdown ? `<div class="total-breakdown">${breakdown}</div>` : ''}
+    </div>`;
+  }
+
+  document.getElementById("content").innerHTML = html;
+}
+
+function renderDiario(obra) {
+  const servicos = obra?.servicos || [];
+  const diario = obra?.diario || [];
+  let html = "";
+
+  // Painel acumulado
+  servicos.forEach(srv => {
+    const regs = diario.filter(d => String(d.servicoId) === String(srv.id));
+    const acum = regs.reduce((s, d) => s + (parseFloat(d.quantidade) || 0), 0);
+    const total = parseFloat(srv.quantidade) || 0;
+    const falta = Math.max(0, total - acum);
+    const pct = total > 0 ? Math.min(100, (acum / total) * 100) : 0;
+    if (!total && !acum) return;
+
+    // Comparativo acumulado
+    const rcProd = getRcProd(srv);
+    const fatores = (srv.fatores || []).filter(ft => ft.nome && ft.horas);
+    let compHtml = "";
+    if (fatores.length && acum > 0) {
+      compHtml = `<div style="margin-top:10px;border-top:1px solid rgba(34,197,94,0.1);padding-top:8px;">
+        <div class="label-sm" style="margin-bottom:6px;">⚖️ Planejado vs Realizado</div>
+        <div class="comp-header">
+          <span class="comp-label">EQUIP.</span>
+          <span class="comp-label" style="text-align:right">PLAN</span>
+          <span class="comp-label" style="text-align:right">REAL</span>
+          <span class="comp-label" style="text-align:right">DIF</span>
+          <span class="comp-label" style="text-align:right">%</span>
+        </div>`;
+      fatores.forEach(ft => {
+        const fv = parseFloat(String(ft.horas).replace(",", "."));
+        const u = parseInt(ft.unidades) || 1;
+        const hPlan = (acum / rcProd) * fv * u;
+        const prefixo = ft.nome.toUpperCase();
+        const hReal = regs.reduce((sum, d) => sum + (d.equipamentos||[]).filter(e => e.nome && e.nome.toUpperCase().startsWith(prefixo)).reduce((s, e) => {
+          const ini = parseFloat(String(e.horaIni).replace(",",".")); const fim = parseFloat(String(e.horaFim).replace(",","."));
+          return s + (fim > ini ? fim - ini : 0);
+        }, 0), 0);
+        const diff = hReal > 0 ? hReal - hPlan : null;
+        const pctD = diff !== null && hPlan ? (diff / hPlan) * 100 : null;
+        const cls = diff === null ? 'cinza' : diff < -0.05 ? 'ganho' : diff > 0.05 ? 'perda' : 'neutro';
+        compHtml += `<div class="comp-row">
+          <span class="comp-val" style="color:#86EFAC;font-weight:700;text-align:left">${ft.nome}${u>1?'×'+u:''}</span>
+          <span class="comp-val cinza">${fmt(hPlan,1)}h</span>
+          <span class="comp-val">${hReal > 0 ? fmt(hReal,1)+'h' : '—'}</span>
+          <span class="comp-val ${cls}">${diff !== null ? (diff>=0?'+':'')+fmt(diff,1)+'h' : '—'}</span>
+          <span class="comp-val ${cls}" style="font-weight:700">${pctD !== null ? (pctD>=0?'▲':'▼')+Math.abs(pctD).toFixed(0)+'%' : '—'}</span>
+        </div>`;
+      });
+      compHtml += `<div style="margin-top:4px;font-size:9px;color:#4a5568;font-family:monospace;">▼ ganho · ▲ perda</div></div>`;
+    }
+
+    html += `<div class="acum-card">
+      <div class="acum-title">${srv.nome} <span style="color:#4ADE80;font-size:11px;font-weight:400">${regs.length} dia${regs.length!==1?'s':''}</span></div>
+      <div class="grid2">
+        <div><div class="label-sm">Total previsto</div><div class="value-md">${total ? fmt(total)+' '+(srv.unidade||'m²') : '—'}</div></div>
+        <div><div class="label-sm" style="color:#22C55E">✅ Acumulado</div><div class="value-md" style="color:#22C55E">${fmt(acum)} ${srv.unidade||'m²'}</div></div>
+      </div>
+      <div><div class="label-sm" style="color:${falta>0?'#FCA5A5':'#4ADE80'}">⏳ Falta</div><div class="value-md" style="color:${falta>0?'#f87171':'#22C55E'}">${total ? fmt(falta)+' '+(srv.unidade||'m²') : '—'}</div></div>
+      ${total ? `<div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div><div class="progress-pct">${pct.toFixed(1)}% concluído</div>` : ''}
+      ${compHtml}
+    </div>`;
+  });
+
+  // Registros diários
+  if (!diario.length) {
+    html += '<div class="empty">📅<br>Nenhum registro ainda.</div>';
+  } else {
+    const sorted = [...diario].sort((a, b) => b.data.localeCompare(a.data));
+    sorted.forEach(reg => {
+      const srv = servicos.find(s => String(s.id) === String(reg.servicoId));
+
+      // Agrupar equipamentos por prefixo
+      const grupos = {};
+      (reg.equipamentos || []).forEach(e => {
+        const pref = e.nome ? e.nome.toUpperCase().split("-")[0].trim() : "?";
+        if (!grupos[pref]) grupos[pref] = { nomes: [], hReal: 0, diesel: 0 };
+        const ini = parseFloat(String(e.horaIni).replace(",",".")); const fim = parseFloat(String(e.horaFim).replace(",","."));
+        grupos[pref].nomes.push(e.nome || "?");
+        grupos[pref].hReal += fim > ini ? fim - ini : 0;
+        grupos[pref].diesel += parseFloat(e.diesel) || 0;
+      });
+
+      const totalH = Object.values(grupos).reduce((s, g) => s + g.hReal, 0);
+      const totalD = Object.values(grupos).reduce((s, g) => s + g.diesel, 0);
+
+      // Comparativo do dia
+      const fatores = srv ? (srv.fatores || []).filter(ft => ft.nome && ft.horas) : [];
+      const rcProd = srv ? getRcProd(srv) : null;
+      const qtdDia = parseFloat(reg.quantidade) || 0;
+      let equipHtml = "";
+      Object.entries(grupos).forEach(([pref, g], i) => {
+        const fator = fatores.find(ft => ft.nome.toUpperCase() === pref);
+        const fv = fator ? parseFloat(String(fator.horas).replace(",",".")) : null;
+        const u = fator ? (parseInt(fator.unidades)||1) : 1;
+        const hPlan = rcProd && qtdDia && fv ? (qtdDia / rcProd) * fv * u : null;
+        const diff = g.hReal > 0 && hPlan ? g.hReal - hPlan : null;
+        const pctD = diff !== null && hPlan ? (diff / hPlan) * 100 : null;
+        const cls = diff === null ? '' : diff < -0.05 ? 'ganho' : diff > 0.05 ? 'perda' : '';
+        const label = g.nomes.length > 1 ? `${pref} (${g.nomes.join('+')} )` : g.nomes[0];
+        equipHtml += `<div class="equip-row" style="background:${i%2===0?'rgba(34,197,94,0.04)':'rgba(34,197,94,0.02)'}">
+          <span class="equip-nome">${label}</span>
+          <div class="equip-stats">
+            ${hPlan ? `<span style="color:#4a5568;font-size:11px;font-family:monospace">${fmt(hPlan,1)}h</span>` : ''}
+            ${g.hReal > 0 ? `<span class="equip-h">${fmt(g.hReal,1)}h</span>` : ''}
+            ${diff !== null ? `<span class="${cls}" style="font-size:11px;font-family:monospace;font-weight:700">${pctD >= 0 ? '▲' : '▼'}${Math.abs(pctD).toFixed(0)}%</span>` : ''}
+            ${g.diesel > 0 ? `<span class="equip-d">⛽${g.diesel}L</span>` : ''}
+          </div>
+        </div>`;
+      });
+
+      html += `<div class="diario-card">
+        <div class="diario-data">${fmtData(reg.data)}</div>
+        <div class="diario-servico">${srv?.nome || 'Serviço não especificado'}${reg.quantidade ? ' · <span style="color:#4ADE80">'+fmt(parseFloat(reg.quantidade))+' '+(srv?.unidade||'m²')+'</span>' : ''}</div>
+        ${equipHtml}
+        <div class="badges" style="margin-top:8px">
+          ${totalH > 0 ? `<span class="badge badge-green">⏱ ${fmt(totalH,1)}h total</span>` : ''}
+          ${totalD > 0 ? `<span class="badge badge-yellow">⛽ ${fmt(totalD,0)} L total</span>` : ''}
+          ${reg.obs ? `<span class="badge" style="background:rgba(168,85,247,0.1);color:#C4B5FD;border:1px solid rgba(168,85,247,0.2)">📝 ${reg.obs.length > 40 ? reg.obs.slice(0,40)+'…' : reg.obs}</span>` : ''}
+        </div>
+      </div>`;
+    });
+  }
+
+  document.getElementById("content").innerHTML = html;
+}
+
+// ===================== MODAL OBRAS =====================
+function abrirModalObras() {
+  const lista = document.getElementById("modal-obras-lista");
+  lista.innerHTML = obras.map(o => `
+    <button class="modal-obra-btn ${o.id === obraAtualId ? 'ativa' : ''}" onclick="selecionarObra(${o.id})">
+      <span>${o.nome}</span>
+      ${o.id === obraAtualId ? '<span>✓</span>' : '<span style="color:#4a5568">›</span>'}
+    </button>
+  `).join('');
+  document.getElementById("modal-obras").style.display = "flex";
+}
+
+function fecharModalObras() {
+  document.getElementById("modal-obras").style.display = "none";
+}
+
+function selecionarObra(id) {
+  obraAtualId = id;
+  fecharModalObras();
+  render();
+}
+
+// ===================== TABS =====================
+function setAba(aba, btn) {
+  abaAtual = aba;
+  document.querySelectorAll('.tab').forEach(t => { t.className = 'tab inactive'; });
+  if (btn) btn.className = 'tab active';
+  render();
+}
+
+// ===================== INIT =====================
+loadData();
+const obra0 = getObra();
+obraAtualId = obra0?.id || 1;
+render();
+</script>
+</body>
+</html>
